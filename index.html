@@ -125,7 +125,10 @@ formData.append("message", userText);
 
 const res = await fetch("https://f1bd-157-38-84-64.ngrok-free.app/chat", {
   method: "POST",
-  body: formData,
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ message: userMessage })  // userMessage is your text input value
 });
 
 
