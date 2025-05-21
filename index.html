@@ -128,7 +128,7 @@ const res = await fetch("https://e524-157-38-84-64.ngrok-free.app/chat", {
   headers: {
     "Content-Type": "application/json"
   },
-  body: JSON.stringify({ message: userMessage })  // userMessage is your text input value
+  body: JSON.stringify({ message: userText })  // ✅ correct variable name
 });
 
 
