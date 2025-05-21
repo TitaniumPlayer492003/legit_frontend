@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LEGIT Chatbot</title>
+  <!-- <link rel="stylesheet" href="style.css" /> -->
+   <link rel="stylesheet" href="style.css">
+
+</head>
+<body>
+  <div class="chat-container">
+    <div class="chat-header">
+      <h2>LEGIT - Legal Chatbot</h2>
+      <button class="settings-btn" id="settings-btn" title="Settings">⚙️</button>
+    </div>
+
+    <div class="chat-box" id="chat-box">
+      <div class="bot-wrapper">
+        <div class="bot-message">
+          Hello! I'm LEGIT. Ask me any legal question.
+        </div>
+        <button class="copy-btn" title="Copy">📋</button>
+      </div>
+    </div>
+
+    <div class="floating-controls">
+      <button id="clear-btn">Clear Chat</button>
+      <button id="download-btn">Download PDF</button>
+    </div>
+
+    <div class="chat-input">
+      <input type="text" id="user-input" placeholder="Type your message..." />
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="settings-modal hidden">
+    <div class="settings-content">
+      <h3>Preferences</h3>
+
+      <label>
+        <input type="checkbox" id="dark-mode-toggle"> Dark Mode
+      </label>
+
+      <label for="font-size-slider">Font Size</label>
+      <input type="range" id="font-size-slider" min="0" max="4" value="2">
+
+      <label>
+        <input type="checkbox" id="timestamp-toggle" checked> Show Timestamps
+      </label>
+
+      <label for="nickname-input">Name / Nickname</label>
+      <input type="text" id="nickname-input" placeholder="Enter your name">
+
+      <label for="role-select">Select Role</label>
+      <select id="role-select">
+        <option value="">-- Select --</option>
+        <option value="student">Student</option>
+        <option value="lawyer">Lawyer</option>
+        <option value="citizen">Common Citizen</option>
+      </select>
+
+      <button id="close-settings">Close</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    const input = document.getElementById("user-input");
+    const sendBtn = document.getElementById("send-btn");
+    const chatBox = document.getElementById("chat-box");
+    const clearBtn = document.getElementById("clear-btn");
+    const downloadBtn = document.getElementById("download-btn");
+
+    // Focus input on typing
+    document.addEventListener("keydown", (e) => {
+      const isTypingKey = /^[a-zA-Z0-9 ]$/.test(e.key);
+      if (isTypingKey && document.activeElement !== input) {
+        input.focus();
+      }
+    });
+
+    function getTimestamp() {
+      const now = new Date();
+      return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function addCopyHandlers() {
+      document.querySelectorAll('.copy-btn').forEach(btn => {
+        btn.onclick = () => {
+          const text = btn.previousElementSibling.textContent.trim();
+          navigator.clipboard.writeText(text);
+          btn.textContent = '✅';
+          setTimeout(() => btn.textContent = '📋', 1000);
+        };
+      });
+    }
+
+    sendBtn.onclick = async () => {
+      const userText = input.value.trim();
+      if (!userText) return;
+
+      chatBox.innerHTML += `
+        <div class="user-message">
+          ${userText}
+          <div class="timestamp">${getTimestamp()}</div>
+        </div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+      input.value = "";
+
+      const loadingElem = document.createElement("div");
+      loadingElem.className = "bot-wrapper";
+      loadingElem.innerHTML = `
+        <div class="bot-message">...</div>
+        <button class="copy-btn" title="Copy">📋</button>`;
+      chatBox.appendChild(loadingElem);
+      addCopyHandlers();
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const formData = new FormData();
+formData.append("message", userText);
+
+const res = await fetch("/chat", {
+  method: "POST",
+  body: formData,
+});
+
+
+        const data = await res.json();
+        const botReply = data.reply || "Sorry, no response.";
+        loadingElem.querySelector(".bot-message").textContent = botReply;
+      } catch (err) {
+        loadingElem.querySelector(".bot-message").textContent = "⚠️ Error getting response.";
+        console.error(err);
+      }
+
+      addCopyHandlers();
+      chatBox.scrollTop = chatBox.scrollHeight;
+    };
+
+    clearBtn.onclick = () => {
+      chatBox.innerHTML = `
+        <div class="bot-wrapper">
+          <div class="bot-message">
+            Hello! I'm LEGIT. Ask me any legal question.
+          </div>
+          <button class="copy-btn" title="Copy">📋</button>
+        </div>`;
+      addCopyHandlers();
+    };
+
+    downloadBtn.onclick = () => {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      const messages = chatBox.querySelectorAll(".bot-message, .user-message");
+      let y = 10;
+
+      messages.forEach((msg) => {
+        const text = msg.textContent.trim();
+        doc.text(text, 10, y);
+        y += 10;
+      });
+
+      doc.save("chat_history.pdf");
+    };
+
+    // Settings
+    const settingsBtn = document.getElementById("settings-btn");
+    const settingsModal = document.getElementById("settings-modal");
+    const closeSettings = document.getElementById("close-settings");
+
+    settingsBtn.onclick = () => settingsModal.classList.remove("hidden");
+    closeSettings.onclick = () => settingsModal.classList.add("hidden");
+
+    // Dark Mode
+    const darkToggle = document.getElementById("dark-mode-toggle");
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+      darkToggle.checked = true;
+    }
+    darkToggle.onchange = () => {
+      requestAnimationFrame(() => {
+        if (darkToggle.checked) {
+          document.body.classList.add("dark-mode");
+          localStorage.setItem("theme", "dark");
+        } else {
+          document.body.classList.remove("dark-mode");
+          localStorage.setItem("theme", "light");
+        }
+      });
+    };
+
+    // Font Size
+    const fontSizeSlider = document.getElementById("font-size-slider");
+    const fontSizes = ['12px', '14px', '16px', '18px', '20px'];
+    const applyFontSize = (val) => {
+      document.querySelector(".chat-box").style.fontSize = fontSizes[val];
+    };
+    if (localStorage.getItem("fontSize")) {
+      const savedSize = localStorage.getItem("fontSize");
+      fontSizeSlider.value = savedSize;
+      applyFontSize(savedSize);
+    }
+    fontSizeSlider.oninput = () => {
+      localStorage.setItem("fontSize", fontSizeSlider.value);
+      applyFontSize(fontSizeSlider.value);
+    };
+
+    // Timestamps
+    const timestampToggle = document.getElementById("timestamp-toggle");
+    const applyTimestamps = (show) => {
+      document.querySelectorAll(".timestamp").forEach(el => {
+        el.style.display = show ? "block" : "none";
+      });
+    };
+
+    let showTimestamps = localStorage.getItem("showTimestamps");
+    if (showTimestamps === null) {
+      showTimestamps = true;
+      localStorage.setItem("showTimestamps", "true");
+    } else {
+      showTimestamps = showTimestamps === "true";
+    }
+
+    timestampToggle.checked = showTimestamps;
+    applyTimestamps(showTimestamps);
+
+    timestampToggle.onchange = () => {
+      localStorage.setItem("showTimestamps", timestampToggle.checked);
+      applyTimestamps(timestampToggle.checked);
+    };
+
+    // Nickname
+    const nicknameInput = document.getElementById("nickname-input");
+    if (localStorage.getItem("nickname")) {
+      nicknameInput.value = localStorage.getItem("nickname");
+    }
+    nicknameInput.oninput = () => {
+      localStorage.setItem("nickname", nicknameInput.value);
+    };
+
+    // Role selection
+    const roleSelect = document.getElementById("role-select");
+    if (localStorage.getItem("userRole")) {
+      roleSelect.value = localStorage.getItem("userRole");
+    }
+    roleSelect.onchange = () => {
+      localStorage.setItem("userRole", roleSelect.value);
+    };
+
+    addCopyHandlers();
+  </script>
+</body>
+</html>
