@@ -134,7 +134,7 @@ const res = await fetch("https://e524-157-38-84-64.ngrok-free.app/chat", {
 
         const data = await res.json();
         console.log("Raw response:", data);
-        const botReply = data.response || "Sorry, no response.";
+        const botReply = data.reply || "Sorry, no response.";
         loadingElem.querySelector(".bot-message").textContent = botReply;
       } catch (err) {
         loadingElem.querySelector(".bot-message").textContent = "⚠️ Error getting response.";
