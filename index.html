@@ -6,6 +6,10 @@
   <title>LEGIT Chatbot</title>
   <!-- <link rel="stylesheet" href="style.css" /> -->
    <link rel="stylesheet" href="style.css">
+   
+   <!-- NEW LINE - Added -->
+   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 
 </head>
 <body>
@@ -137,7 +141,9 @@ const res = await fetch("https://2de3-2409-40d5-96-7131-b96a-8074-8798-24d5.ngro
         console.log("Raw response:", data, typeof data);
         console.log("reply property:", data.reply);
         const botReply = data.reply || "Sorry, no response.";
-        loadingElem.querySelector(".bot-message").textContent = botReply;
+        // loadingElem.querySelector(".bot-message").textContent = botReply;
+        // NEW LINE - Changed to:
+        loadingElem.querySelector(".bot-message").innerHTML = marked.parse(botReply);
       } catch (err) {
         loadingElem.querySelector(".bot-message").textContent = "⚠️ Error getting response.";
         console.error(err);
