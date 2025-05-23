@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LEGIT Chatbot</title>
   <!-- <link rel="stylesheet" href="style.css" /> -->
-   <link rel="stylesheet" href="style.css">
+   <link rel="stylesheet" href="newStyle.css">
    
    <!-- NEW LINE - Added -->
    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -54,17 +54,6 @@
       <label>
         <input type="checkbox" id="timestamp-toggle" checked> Show Timestamps
       </label>
-
-      <label for="nickname-input">Name / Nickname</label>
-      <input type="text" id="nickname-input" placeholder="Enter your name">
-
-      <label for="role-select">Select Role</label>
-      <select id="role-select">
-        <option value="">-- Select --</option>
-        <option value="student">Student</option>
-        <option value="lawyer">Lawyer</option>
-        <option value="citizen">Common Citizen</option>
-      </select>
 
       <button id="close-settings">Close</button>
     </div>
@@ -127,7 +116,7 @@
         const formData = new FormData();
 formData.append("message", userText);
 
-const res = await fetch("https://a486-2409-40d5-96-7131-b96a-8074-8798-24d5.ngrok-free.app/chat", {
+const res = await fetch("https://1796-2409-40d5-96-7131-b96a-8074-8798-24d5.ngrok-free.app/chat", {
   method: "POST",
   headers: {
     "Content-Type": "application/json"
@@ -243,24 +232,6 @@ const res = await fetch("https://a486-2409-40d5-96-7131-b96a-8074-8798-24d5.ngro
     timestampToggle.onchange = () => {
       localStorage.setItem("showTimestamps", timestampToggle.checked);
       applyTimestamps(timestampToggle.checked);
-    };
-
-    // Nickname
-    const nicknameInput = document.getElementById("nickname-input");
-    if (localStorage.getItem("nickname")) {
-      nicknameInput.value = localStorage.getItem("nickname");
-    }
-    nicknameInput.oninput = () => {
-      localStorage.setItem("nickname", nicknameInput.value);
-    };
-
-    // Role selection
-    const roleSelect = document.getElementById("role-select");
-    if (localStorage.getItem("userRole")) {
-      roleSelect.value = localStorage.getItem("userRole");
-    }
-    roleSelect.onchange = () => {
-      localStorage.setItem("userRole", roleSelect.value);
     };
 
     addCopyHandlers();
